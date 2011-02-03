@@ -1,0 +1,9 @@
+<stack>
+  <description brief="cp_capstone_autogolfcart">cp_capstone_autogolfcart</description>
+  <author>Maintained by ROS</author>
+  <license></license>  
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cp_capstone_autogolfcart</url>
+  <depend stack="ros" />
+
+</stack>
