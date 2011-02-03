@@ -9,8 +9,6 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/roboteq_ax1500</url>
   <depend package="roscpp"/>
-  <depend package="std_msgs"/>
-  <depend package="roslib"/>
 
 </package>
 
