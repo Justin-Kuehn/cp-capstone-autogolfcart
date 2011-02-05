@@ -1,0 +1,15 @@
+<package>
+  <description brief="golfcart_encoder">
+
+     golfcart_encoder
+
+  </description>
+  <author>Justin</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/golfcart_encoder</url>
+  <depend package="roscpp"/>
+
+</package>
+
+
