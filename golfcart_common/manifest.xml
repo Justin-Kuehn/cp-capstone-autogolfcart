@@ -1,0 +1,18 @@
+<package>
+  <description brief="golfcart_common">
+
+     golfcart_common
+
+  </description>
+  <author>ROS</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/golfcart_common</url>
+  <export>
+    <cpp cflags="-I${prefix}/include"/>
+  </export>
+  <depend package="roscpp"/>
+
+</package>
+
+

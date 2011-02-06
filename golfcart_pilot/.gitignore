@@ -1,0 +1,7 @@
+*.[oa]
+bin/
+build/
+src/golfcart_pilot
+srv/lisp/
+srv_gen/
+.*.swp

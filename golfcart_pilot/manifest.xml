@@ -1,0 +1,17 @@
+<package>
+  <description brief="golfcart_pilot">
+
+     golfcart_pilot
+
+  </description>
+  <author>ROS</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/golfcart_pilot</url>
+  <depend package="roscpp"/>
+  <depend package="geometry_msgs"/>
+  <depend package="golfcart_common"/>
+
+</package>
+
+
