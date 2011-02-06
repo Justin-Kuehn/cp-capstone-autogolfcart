@@ -3,6 +3,7 @@
 #include <boost/asio/write.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <cstdio>
+#include <iostream>
 #include <ros/ros.h>
 #include <ros/callback_queue.h>
 #include "roboteq_ax1500/channel_forward.h"
@@ -81,6 +82,7 @@ int main(int argc, char **argv) {
     ros::NodeHandle n;
 
     if (argc < 2) {
+        cerr << "Usage: " << argv[0] << " <tty>" << endl;
         return 1;
     }
 
