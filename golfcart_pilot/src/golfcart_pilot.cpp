@@ -13,5 +13,8 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    ROS_INFO("golfcart_pilot ready");
+    ros::spin();
+
     return 0;
 }
