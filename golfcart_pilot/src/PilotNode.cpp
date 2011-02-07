@@ -11,7 +11,7 @@ bool PilotNode::init() {
     if (ax1500) {
         ROS_INFO("Connected to ax1500");
     } else {
-        ROS_WARN("Couldn't connect to ax1500");
+        ROS_ERROR("Couldn't connect to ax1500");
         return false;
     }
 

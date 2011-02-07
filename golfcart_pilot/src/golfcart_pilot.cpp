@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
     PilotNode n;
 
     if (!n.init()) {
-        ROS_WARN("couldn't initialize");
+        ROS_ERROR("couldn't initialize");
         return 1;
     }
 
