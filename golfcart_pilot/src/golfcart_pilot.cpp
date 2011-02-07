@@ -1,15 +1,15 @@
 #include <iostream>
 #include <ros/ros.h>
-#include <geometry_msgs/Twist.h>
+#include "golfcart_pilot/PilotNode.h"
 
 using namespace std;
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "golfcart_pilot");
-    ros::NodeHandle n;
+    PilotNode n;
 
-    if (argc != 4) {
-        cerr << "Usage: " << argv[0] << " <min> <center> <max>" << endl;
+    if (!n.init()) {
+        ROS_WARN("couldn't initialize");
         return 1;
     }
 
