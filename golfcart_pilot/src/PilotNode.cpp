@@ -1,5 +1,8 @@
 #include "golfcart_pilot/PilotNode.h"
 
+void PilotNode::commandCallback(const geometry_msgs::Twist::ConstPtr &m) {
+}
+
 bool PilotNode::init() {
     ros::Rate r(1);
     do {
@@ -31,6 +34,9 @@ bool PilotNode::init() {
         ROS_ERROR("No steering max");
         return false;
     }
+
+    commandSub = n.subscribe<geometry_msgs::Twist>("golfcart_pilot/command", 100,
+            &PilotNode::commandCallback, this);
 
     return true;
 }
