@@ -80,15 +80,19 @@ bool channel_forward(roboteq_ax1500::channel_forward::Request &req,
 int main(int argc, char **argv) {
     ros::init(argc, argv, "ax1500_cmd_server");
     ros::NodeHandle n;
+    ros::NodeHandle pn("~");
 
-    if (argc < 2) {
-        cerr << "Usage: " << argv[0] << " <tty>" << endl;
+    if (!pn.hasParam("tty")) {
+        cerr << "Usage: " << argv[0] << " _tty:=<tty>" << endl;
         return 1;
     }
 
+    string tty;
+    pn.getParam("tty", tty);
+
     io_ptr.reset(new asio::io_service());
-    ROS_INFO("Using port %s", argv[1]);
-    sp_ptr.reset(new asio::serial_port(*io_ptr, argv[1]));
+    ROS_INFO("Using port %s", tty.c_str());
+    sp_ptr.reset(new asio::serial_port(*io_ptr, tty.c_str()));
     sp_ptr->set_option(asio::serial_port_base::baud_rate(9600));
     sp_ptr->set_option(asio::serial_port_base::parity(asio::serial_port_base::parity::even));
     sp_ptr->set_option(asio::serial_port_base::stop_bits(asio::serial_port_base::stop_bits::one));
