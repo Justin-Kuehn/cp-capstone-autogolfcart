@@ -1,0 +1,4 @@
+/golfcart_pilot/steering_channel: 1
+/golfcart_pilot/steering_min: 40
+/golfcart_pilot/steering_center: 60
+/golfcart_pilot/steering_max: 80
