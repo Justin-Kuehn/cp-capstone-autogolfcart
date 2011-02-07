@@ -45,7 +45,7 @@ bool channel_forward(roboteq_ax1500::channel_forward::Request &req,
         roboteq_ax1500::channel_forward::Response &res) {
     ROS_INFO("channel_forward: channel=%d, value=%x", req.channel, req.value);
     if (!req.channel || req.channel > 2) {
-        ROS_INFO("invalid channel");
+        ROS_ERROR("invalid channel");
         return false;
     }
 
@@ -65,12 +65,12 @@ bool channel_forward(roboteq_ax1500::channel_forward::Request &req,
         r &= (*sptr == *rptr);
     }
     if (*rptr != '+') {
-        ROS_INFO("channel_foward: expected %d, got %d", '+', *rptr);
+        ROS_ERROR("channel_foward: expected %d, got %d", '+', *rptr);
         r = false;
     }
     rptr++;
     if (*rptr != '\r') {
-        ROS_INFO("channel_foward: expected %d, got %d", '+', *rptr);
+        ROS_ERROR("channel_foward: expected %d, got %d", '+', *rptr);
     }
     ROS_INFO("channel_foward: %s", r ? "success" : "failure");
 
@@ -105,7 +105,7 @@ int main(int argc, char **argv) {
         asio::write(*sp_ptr, boost::asio::buffer(&KEEP_ALIVE, 1));
         asio::read(*sp_ptr, boost::asio::buffer(&ret, 1));
         if (ret != KEEP_ALIVE)
-            ROS_INFO("Keep Alive Failure: expected %d, got %d", KEEP_ALIVE, ret);
+            ROS_WARN("Keep Alive Failure: expected %d, got %d", KEEP_ALIVE, ret);
         ros::getGlobalCallbackQueue()->callAvailable(ros::WallDuration(0.25));
     }
 
