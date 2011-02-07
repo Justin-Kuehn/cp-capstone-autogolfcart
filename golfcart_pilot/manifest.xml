@@ -10,7 +10,6 @@
   <url>http://ros.org/wiki/golfcart_pilot</url>
   <depend package="roscpp"/>
   <depend package="geometry_msgs"/>
-  <depend package="golfcart_common"/>
 
 </package>
 

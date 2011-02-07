@@ -1,9 +1,0 @@
-#ifndef _GOLFCART_H
-#define _GOLFCART_H
-
-#define STEER_LEFT_MAX_RAD -0.588175958
-#define STEER_RIGHT_MAX_RAD 0.588175958
-#define STEER_LEFT_MAX_DEG -33.7
-#define STEER_RIGHT_MAX_DEG 33.7
-
-#endif
