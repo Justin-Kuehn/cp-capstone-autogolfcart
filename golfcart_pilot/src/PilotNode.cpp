@@ -15,5 +15,22 @@ bool PilotNode::init() {
         return false;
     }
 
+    if (!n.hasParam("/golfcart_pilot/steering_channel")) {
+        ROS_ERROR("No steering channel");
+        return false;
+    }
+    if (!n.hasParam("/golfcart_pilot/steering_min")) {
+        ROS_ERROR("No steering min");
+        return false;
+    }
+    if (!n.hasParam("/golfcart_pilot/steering_center")) {
+        ROS_ERROR("No steering center");
+        return false;
+    }
+    if (!n.hasParam("/golfcart_pilot/steering_max")) {
+        ROS_ERROR("No steering max");
+        return false;
+    }
+
     return true;
 }
