@@ -9,13 +9,16 @@ class PilotNode {
     ros::NodeHandle n;
     ros::NodeHandle pn;
     ros::ServiceClient ax1500;
-    ros::Subscriber commandSub;
+    ros::Subscriber absCmdSub;
+    ros::Subscriber relCmdSub;
     geometry_msgs::Twist state;
 
     public:
     PilotNode() : pn("~") {};
     bool init();
-    void commandCallback(const geometry_msgs::Twist::ConstPtr &m);
+    bool connect();
+    void absoluteCommandCallback(const geometry_msgs::Twist::ConstPtr &m);
+    void relativeCommandCallback(const geometry_msgs::Twist::ConstPtr &m);
 };
 
 #endif

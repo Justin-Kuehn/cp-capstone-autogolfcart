@@ -1,4 +1,5 @@
 /golfcart_pilot/steering_channel: 1
-/golfcart_pilot/steering_min: 40
-/golfcart_pilot/steering_center: 60
-/golfcart_pilot/steering_max: 80
+/golfcart_pilot/steering_min_enc: 40
+/golfcart_pilot/steering_center_enc: 60
+/golfcart_pilot/steering_max_enc: 80
+/golfcart_pilot/steering_range: deg(67.4)
