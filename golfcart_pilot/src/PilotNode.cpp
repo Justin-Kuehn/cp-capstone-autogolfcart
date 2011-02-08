@@ -1,33 +1,49 @@
 #include "golfcart_pilot/PilotNode.h"
 
 void PilotNode::absoluteCommandCallback(const geometry_msgs::Twist::ConstPtr &m) {
-    if (!ax1500) {
-        ROS_WARN("ax1500 connection lost");
-        connect();
-    }
-
-    uint8_t value(sParams.encCen + sParams.ticPerRad * m->linear.y);
+    geometry_msgs::Twist nM(*m);
+    uint8_t value(sParams.encCen + sParams.ticPerRad * m->angular.y);
     if (value < sParams.encMin) {
         ROS_WARN("Trying to turn to %d, clamping at %d", value, sParams.encMin);
         value = sParams.encMin;
+        nM.angular.y = sParams.minRad;
     } else if (value > sParams.encMax) {
         ROS_WARN("Trying to turn to %d, clamping at %d", value, sParams.encMax);
         value = sParams.encMax;
+        nM.angular.y = sParams.maxRad;
     }
-    roboteq_ax1500::channel_forward cmd;
-    cmd.request.channel = sParams.chan;
-    cmd.request.value = value;
-    ROS_INFO("Sending channel_forward to ax1500: channel %d, value %d",
-            cmd.request.channel, cmd.request.value);
-    if (ax1500.call(cmd)) {
-        state = *m;
+
+    if (sendSteeringCommand(value)) {
+        state = nM;
     } else {
         ROS_ERROR("AX1500 call failed");
         ROS_WARN("Not changing state");
     }
 }
 
+bool PilotNode::sendSteeringCommand(uint8_t value) {
+    if (!ax1500) {
+        ROS_WARN("ax1500 connection lost");
+        connect();
+    }
+
+    roboteq_ax1500::channel_forward cmd;
+    cmd.request.channel = sParams.chan;
+    cmd.request.value = value;
+    ROS_INFO("Sending channel_forward to ax1500: channel %d, value %d",
+            cmd.request.channel, cmd.request.value);
+    return ax1500.call(cmd);
+}
+
 void PilotNode::relativeCommandCallback(const geometry_msgs::Twist::ConstPtr &m) {
+    geometry_msgs::Twist::Ptr nState(new geometry_msgs::Twist());
+    nState->angular.x = state.angular.x + m->angular.x;
+    nState->angular.y = state.angular.y + m->angular.y;
+    nState->angular.z = state.angular.z + m->angular.z;
+    nState->linear.x = state.linear.x + m->linear.x;
+    nState->linear.y = state.linear.y + m->linear.y;
+    nState->linear.z = state.linear.z + m->linear.z;
+    absoluteCommandCallback(nState);
 }
 
 bool PilotNode::connect() {
@@ -48,9 +64,6 @@ bool PilotNode::connect() {
 }
 
 bool PilotNode::init() {
-    if (!connect())
-        return false;
-
     if (!n.hasParam("/golfcart_pilot/steering_channel")) {
         ROS_ERROR("No steering channel");
         return false;
@@ -92,6 +105,21 @@ bool PilotNode::init() {
 
     ROS_INFO("Radians Per Encoder Tic: %f", sParams.radPerTic);
     ROS_INFO("Max steering: %f radians, Min steering: %f radians", sParams.maxRad, sParams.minRad);
+
+    if (!connect())
+        return false;
+
+    if (sendSteeringCommand(sParams.encCen)) {
+        state.angular.x = 0;
+        state.angular.y = 0;
+        state.angular.z = 0;
+        state.linear.x = 0;
+        state.linear.y = 0;
+        state.linear.z = 0;
+    } else {
+        ROS_ERROR("Couldn't reset state");
+        return false;
+    }
 
     absCmdSub = n.subscribe<geometry_msgs::Twist>("golfcart_pilot/abs_cmd", 100,
             &PilotNode::absoluteCommandCallback, this);

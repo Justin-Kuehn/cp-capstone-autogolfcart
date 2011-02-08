@@ -34,6 +34,7 @@ class PilotNode {
     bool connect();
     void absoluteCommandCallback(const geometry_msgs::Twist::ConstPtr &m);
     void relativeCommandCallback(const geometry_msgs::Twist::ConstPtr &m);
+    bool sendSteeringCommand(uint8_t value);
 };
 
 #endif
