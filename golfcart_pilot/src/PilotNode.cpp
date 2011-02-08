@@ -5,6 +5,8 @@ void PilotNode::absoluteCommandCallback(const geometry_msgs::Twist::ConstPtr &m)
         ROS_WARN("ax1500 connection lost");
         connect();
     }
+
+    uint8_t value(sParams.encCen + sParams.ticPerRad * m->linear.y);
 }
 
 void PilotNode::relativeCommandCallback(const geometry_msgs::Twist::ConstPtr &m) {
@@ -52,21 +54,25 @@ bool PilotNode::init() {
         return false;
     }
 
-    double encMin, encCen, encMax, range;
-    n.getParamCached("/golfcart_pilot/steering_max_enc", encMax);
-    n.getParamCached("/golfcart_pilot/steering_center_enc", encCen);
-    n.getParamCached("/golfcart_pilot/steering_min_enc", encMin);
-    n.getParamCached("/golfcart_pilot/steering_range", range);
-    ROS_INFO("Using: max %f tics, center %f tics, min %f tics, range %f radians", encMax, encCen, encMin, range);
-    double radPerTic = range / (encMax - encMin);
-    ROS_INFO("Radians Per Encoder Tic: %f", radPerTic);
-    n.setParam("/golfcart_pilot/rad_per_tic", radPerTic);
-    n.setParam("/golfcart_pilot/tic_per_rad", 1 / radPerTic);
-    double minRad = (encMin - encCen) * radPerTic;
-    double maxRad = (encMax - encCen) * radPerTic;
-    ROS_INFO("Max steering: %f radians, Min steering: %f radians", maxRad, minRad);
-    n.setParam("/golfcart_pilot/steering_max_rad", maxRad);
-    n.setParam("/golfcart_pilot/steering_min_rad", minRad);
+    n.getParam("/golfcart_pilot/steering_max_enc", sParams.encMax);
+    n.getParam("/golfcart_pilot/steering_center_enc", sParams.encCen);
+    n.getParam("/golfcart_pilot/steering_min_enc", sParams.encMin);
+    n.getParam("/golfcart_pilot/steering_range", sParams.range);
+    ROS_INFO("Using: max %d tics, center %d tics, min %d tics, range %f radians",
+            sParams.encMax, sParams.encCen, sParams.encMin, sParams.range);
+
+    sParams.radPerTic = sParams.range / (sParams.encMax - sParams.encMin);
+    sParams.ticPerRad = 1 / sParams.radPerTic;
+    sParams.minRad = (sParams.encMin - sParams.encCen) * sParams.radPerTic;
+    sParams.maxRad = (sParams.encMax - sParams.encCen) * sParams.radPerTic;
+
+    n.setParam("/golfcart_pilot/rad_per_tic", sParams.radPerTic);
+    n.setParam("/golfcart_pilot/tic_per_rad", sParams.ticPerRad);
+    n.setParam("/golfcart_pilot/steering_max_rad", sParams.maxRad);
+    n.setParam("/golfcart_pilot/steering_min_rad", sParams.minRad);
+
+    ROS_INFO("Radians Per Encoder Tic: %f", sParams.radPerTic);
+    ROS_INFO("Max steering: %f radians, Min steering: %f radians", sParams.maxRad, sParams.minRad);
 
     absCmdSub = n.subscribe<geometry_msgs::Twist>("golfcart_pilot/abs_cmd", 100,
             &PilotNode::absoluteCommandCallback, this);
