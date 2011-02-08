@@ -7,6 +7,24 @@ void PilotNode::absoluteCommandCallback(const geometry_msgs::Twist::ConstPtr &m)
     }
 
     uint8_t value(sParams.encCen + sParams.ticPerRad * m->linear.y);
+    if (value < sParams.encMin) {
+        ROS_WARN("Trying to turn to %d, clamping at %d", value, sParams.encMin);
+        value = sParams.encMin;
+    } else if (value > sParams.encMax) {
+        ROS_WARN("Trying to turn to %d, clamping at %d", value, sParams.encMax);
+        value = sParams.encMax;
+    }
+    roboteq_ax1500::channel_forward cmd;
+    cmd.request.channel = sParams.chan;
+    cmd.request.value = value;
+    ROS_INFO("Sending channel_forward to ax1500: channel %d, value %d",
+            cmd.request.channel, cmd.request.value);
+    if (ax1500.call(cmd)) {
+        state = *m;
+    } else {
+        ROS_ERROR("AX1500 call failed");
+        ROS_WARN("Not changing state");
+    }
 }
 
 void PilotNode::relativeCommandCallback(const geometry_msgs::Twist::ConstPtr &m) {
@@ -54,6 +72,7 @@ bool PilotNode::init() {
         return false;
     }
 
+    n.getParam("/golfcart_pilot/steering_channel", sParams.chan);
     n.getParam("/golfcart_pilot/steering_max_enc", sParams.encMax);
     n.getParam("/golfcart_pilot/steering_center_enc", sParams.encCen);
     n.getParam("/golfcart_pilot/steering_min_enc", sParams.encMin);

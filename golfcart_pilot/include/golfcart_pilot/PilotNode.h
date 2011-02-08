@@ -7,7 +7,7 @@
 #include "roboteq_ax1500/channel_forward.h"
 
 struct SteeringParams {
-    uint8_t chan;
+    int chan;
     int encMin;
     int encCen;
     int encMax;
