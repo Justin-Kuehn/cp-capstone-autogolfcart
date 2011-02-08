@@ -61,6 +61,7 @@ bool PilotNode::init() {
     double radPerTic = range / (encMax - encMin);
     ROS_INFO("Radians Per Encoder Tic: %f", radPerTic);
     n.setParam("/golfcart_pilot/rad_per_tic", radPerTic);
+    n.setParam("/golfcart_pilot/tic_per_rad", 1 / radPerTic);
     double minRad = (encMin - encCen) * radPerTic;
     double maxRad = (encMax - encCen) * radPerTic;
     ROS_INFO("Max steering: %f radians, Min steering: %f radians", maxRad, minRad);
