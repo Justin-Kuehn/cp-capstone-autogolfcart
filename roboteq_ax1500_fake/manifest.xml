@@ -1,0 +1,16 @@
+<package>
+  <description brief="roboteq_ax1500_fake">
+
+     roboteq_ax1500_fake
+
+  </description>
+  <author>ROS</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/roboteq_ax1500_fake</url>
+  <depend package="rospy"/>
+  <depend package="roboteq_ax1500"/>
+
+</package>
+
+

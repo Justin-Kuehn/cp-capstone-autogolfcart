@@ -3,6 +3,7 @@
 #include <boost/asio/write.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <cstdio>
+#include <iostream>
 #include <ros/ros.h>
 #include <ros/callback_queue.h>
 #include "roboteq_ax1500/channel_forward.h"
@@ -44,7 +45,7 @@ bool channel_forward(roboteq_ax1500::channel_forward::Request &req,
         roboteq_ax1500::channel_forward::Response &res) {
     ROS_INFO("channel_forward: channel=%d, value=%x", req.channel, req.value);
     if (!req.channel || req.channel > 2) {
-        ROS_INFO("invalid channel");
+        ROS_ERROR("invalid channel");
         return false;
     }
 
@@ -64,12 +65,12 @@ bool channel_forward(roboteq_ax1500::channel_forward::Request &req,
         r &= (*sptr == *rptr);
     }
     if (*rptr != '+') {
-        ROS_INFO("channel_foward: expected %d, got %d", '+', *rptr);
+        ROS_ERROR("channel_foward: expected %d, got %d", '+', *rptr);
         r = false;
     }
     rptr++;
     if (*rptr != '\r') {
-        ROS_INFO("channel_foward: expected %d, got %d", '+', *rptr);
+        ROS_ERROR("channel_foward: expected %d, got %d", '+', *rptr);
     }
     ROS_INFO("channel_foward: %s", r ? "success" : "failure");
 
@@ -80,13 +81,17 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "ax1500_cmd_server");
     ros::NodeHandle n;
 
-    if (argc < 2) {
+    if (!ros::param::has("~tty")) {
+        cerr << "Usage: " << argv[0] << " _tty:=<tty>" << endl;
         return 1;
     }
 
+    string tty;
+    ros::param::get("~tty", tty);
+
     io_ptr.reset(new asio::io_service());
-    ROS_INFO("Using port %s", argv[1]);
-    sp_ptr.reset(new asio::serial_port(*io_ptr, argv[1]));
+    ROS_INFO("Using port %s", tty.c_str());
+    sp_ptr.reset(new asio::serial_port(*io_ptr, tty.c_str()));
     sp_ptr->set_option(asio::serial_port_base::baud_rate(9600));
     sp_ptr->set_option(asio::serial_port_base::parity(asio::serial_port_base::parity::even));
     sp_ptr->set_option(asio::serial_port_base::stop_bits(asio::serial_port_base::stop_bits::one));
@@ -100,7 +105,7 @@ int main(int argc, char **argv) {
         asio::write(*sp_ptr, boost::asio::buffer(&KEEP_ALIVE, 1));
         asio::read(*sp_ptr, boost::asio::buffer(&ret, 1));
         if (ret != KEEP_ALIVE)
-            ROS_INFO("Keep Alive Failure: expected %d, got %d", KEEP_ALIVE, ret);
+            ROS_WARN("Keep Alive Failure: expected %d, got %d", KEEP_ALIVE, ret);
         ros::getGlobalCallbackQueue()->callAvailable(ros::WallDuration(0.25));
     }
 
