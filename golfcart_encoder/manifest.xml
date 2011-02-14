@@ -4,11 +4,12 @@
      golfcart_encoder
 
   </description>
-  <author>Justin</author>
+  <author>Justin Kuehn</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/golfcart_encoder</url>
   <depend package="roscpp"/>
+  <depend package="std_msgs"/>
 
 </package>
 
