@@ -4,6 +4,7 @@
 roboteq_ax1500/src/roboteq_ax1500
 golfcart_pilot/src/golfcart_pilot
 golfcart_encoder/src/golfcart_encoder
+arduino_due/src/arduino_due
 */srv/lisp/
 */srv_gen/
 .*.swp

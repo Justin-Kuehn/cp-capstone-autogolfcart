@@ -1,0 +1,9 @@
+int32 analog_0
+int32 analog_1
+int32 analog_2
+int32 analog_3
+int32 digital_4
+int32 digital_5
+int32 digital_6
+int32 digital_7
+int32 pmad_command_count
