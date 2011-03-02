@@ -1,0 +1,15 @@
+<package>
+  <description brief="golfcart_localization">
+
+     golfcart_localization
+
+  </description>
+  <author>Justin</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/golfcart_localization</url>
+  <depend package="roscpp"/>
+
+</package>
+
+
