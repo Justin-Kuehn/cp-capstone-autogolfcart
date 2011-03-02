@@ -11,6 +11,7 @@
   <depend package="roscpp"/>
   <depend package="geometry_msgs"/>
   <depend package="roboteq_ax1500"/>
+  <depend package="pmad"/>
 
 </package>
 
