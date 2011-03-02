@@ -1,0 +1,18 @@
+<package>
+  <description brief="Access analog inputs and digital outputs on the Arduino.">
+
+     The PMAD (power management and distribution) node provides access
+     to digital outputs and analog inputs on an Arduino.
+
+  </description>
+  <author>Andrew Harris</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/pmad</url>
+  <depend package="std_msgs"/>
+  <depend package="rospy"/>
+  <depend package="roscpp"/>
+
+</package>
+
+
