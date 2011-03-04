@@ -34,13 +34,6 @@ static const char KEEP_ALIVE = 'Z';
 static io_service_ptr io_ptr;
 static serial_port_ptr sp_ptr;
 
-void drain_keepalive() {
-    char ret, c;
-    do {
-        ret = sp_ptr->read_some(boost::asio::buffer(&c, 1));
-    } while (ret && (c == KEEP_ALIVE));
-}
-
 bool channel_forward(roboteq_ax1500::channel_forward::Request &req,
         roboteq_ax1500::channel_forward::Response &res) {
     ROS_INFO("channel_forward: channel=%d, value=%x", req.channel, req.value);
@@ -48,8 +41,6 @@ bool channel_forward(roboteq_ax1500::channel_forward::Request &req,
         ROS_ERROR("invalid channel");
         return false;
     }
-
-    drain_keepalive();
 
     char send[6], ret[7];
     const char *cmd = (req.channel == 1) ? CH1_FORWARD.c_str() : CH2_FORWARD.c_str();

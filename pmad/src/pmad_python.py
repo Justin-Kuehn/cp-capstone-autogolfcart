@@ -79,7 +79,7 @@ class PMADInterface:
         return switch_res
 
 if __name__ == '__main__':
-    pmad = PMADInterface('/dev/ttyUSB0')
+    pmad = PMADInterface('/dev/ttyUSB1')
     print list(pmad.status())
     print pmad.switch(4, 0)
     print list(pmad.status())

@@ -8,7 +8,7 @@ from golfcart_encoder.msg import GolfcartEncoder
 def gui_bridge():	
 	#setup ROS node
 	rospy.init_node('gui_bridge')
-	pub = rospy.Publisher('cmd_vel', Twist)
+	pub = rospy.Publisher('/golfcart_pilot/abs_cmd', Twist)
 	
 	#setup socket
 	HOST = ''

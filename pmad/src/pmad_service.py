@@ -40,7 +40,7 @@ def pmad_server(pmad):
     rospy.spin()
 
 if __name__ == '__main__':
-    tty = rospy.get_param("tty", "/dev/ttyUSB0")
+    tty = rospy.get_param("tty", "/dev/ttyUSB1")
     pmad = pmad_python.PMADInterface(tty)
     # and now start the server
     pmad_server(pmad)
