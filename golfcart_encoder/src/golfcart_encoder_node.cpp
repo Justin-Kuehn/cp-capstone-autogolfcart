@@ -10,29 +10,85 @@
 using namespace ros;
 using std::string;
 
-static const double WHEEL_CIRCUM = 1.1; // Meters
-static const double TICKS_PER_REV = 160.0;
 static const int ARRAY_SIZE = 20;
-static const int MAX_ENCODER_TICKS = 32000;
+static const int BAUD = 9600;
 
-int main(int argc, char **argv)
-{
+struct EncoderParams {
+  double wheel_circum;  // Meters
+  int ticks_per_rev; 
+  int max_encoder_ticks; 
+  string encoder_port;
+  string compass_port;
+};
+
+double parseCompass(string s) {
+  if(s.length() < 7)
+    return 0;  
+  return (double)atoi(s.substr(3,3).c_str());
+}
+
+
+int main(int argc, char **argv) {
   int last_tick = 0, delta_tick = 0, rolling_index = 0;
   double speed[ARRAY_SIZE] = {0};
   double avg_speed = 0;
   ros::Time last_time;
   ros::Duration delta_time;
+  EncoderParams eParams;
   
-  SimpleSerial* port;
-  
+  SimpleSerial* encoder_port;
+  SimpleSerial* compass_port;
   
   ros::init(argc, argv, "golfcart_encoder");
   ros::NodeHandle nh;
   
+  // Init Params
+  if (!nh.hasParam("/golfcart_encoder/wheel_cirum")) {
+    ROS_ERROR("No wheel circumference defined");
+    return false;
+  }
+  if (!nh.hasParam("/golfcart_encoder/ticks_per_rev")) {
+    ROS_ERROR("No ticks per revolution defined");
+    return false;
+  }
+  if (!nh.hasParam("/golfcart_encoder/max_encoder_ticks")) {
+    ROS_ERROR("No max encoder ticks defined");
+    return false;
+  }
+  if (!nh.hasParam("/golfcart_encoder/encoder_port")) {
+    ROS_ERROR("No encoder_port defined");
+    return false;
+  }
+  if (!nh.hasParam("/golfcart_encoder/compass_port")) {
+    ROS_ERROR("No compass_port defined");
+    return false;
+  }
+  
+  nh.getParam("/golfcart_encoder/wheel_cirum", eParams.wheel_circum);
+  nh.getParam("/golfcart_encoder/ticks_per_rev", eParams.ticks_per_rev);
+  nh.getParam("/golfcart_encoder/max_encoder_ticks", eParams.max_encoder_ticks);
+  nh.getParam("/golfcart_encoder/compass_port", eParams.compass_port);
+  nh.getParam("/golfcart_encoder/encoder_port", eParams.encoder_port);
+  ROS_INFO("Using: wheel_cirum: %f, ticks_per_rev: %d,  max_encoder_ticks: %d",
+      eParams.wheel_circum, eParams.ticks_per_rev, eParams.max_encoder_ticks);
+  ROS_INFO("Using: encoder_port: %s, compass_port: %s", 
+      eParams.encoder_port.c_str(), eParams.compass_port.c_str());
+  
+  // Open Encoder Serial Port
   try {
-    port = new SimpleSerial("/dev/ttyUSB0", 9600);
+    encoder_port = new SimpleSerial(eParams.encoder_port, BAUD);
   } catch (...) {
-    fprintf(stderr, "golfcart_encoder: Error trying to open serial port\n");
+    ROS_ERROR("golfcart_encoder: Error trying to open serial port %s\n", 
+      eParams.encoder_port.c_str());
+    return -1;
+  }
+  
+  // Open Compass Serial Port
+  try {
+    compass_port = new SimpleSerial(eParams.compass_port, BAUD);
+  } catch (...) {
+    ROS_ERROR("golfcart_encoder: Error trying to open serial port %s\n", 
+      eParams.compass_port.c_str());
     return -1;
   }
   
@@ -41,7 +97,7 @@ int main(int argc, char **argv)
   
   ros::Rate loop_rate(100); // 100Hz
   
-  last_tick = atoi(port->readLine().c_str());
+  last_tick = atoi(encoder_port->readLine().c_str());
   last_time = ros::Time::now();
   
   while(ros::ok())
@@ -49,17 +105,18 @@ int main(int argc, char **argv)
     golfcart_encoder::GolfcartEncoder msg;
     
     // Read from encoders
-    msg.ticks = atoi(port->readLine().c_str());
+    msg.ticks = atoi(encoder_port->readLine().c_str());
+    msg.heading = parseCompass(compass_port->readLine());
     msg.header.stamp = ros::Time::now();
-    msg.heading = 0; //TODO
     
     // Calculate Speed
     delta_time = msg.header.stamp - last_time;
     delta_tick = msg.ticks - last_tick;
-    if (delta_tick < 0) delta_tick += MAX_ENCODER_TICKS;
+    if (delta_tick < 0) delta_tick += eParams.max_encoder_ticks;
     speed[rolling_index] = 
-      (WHEEL_CIRCUM / TICKS_PER_REV) * (delta_tick / delta_time.toSec());
+      (eParams.wheel_circum / eParams.ticks_per_rev) * (delta_tick / delta_time.toSec());
     rolling_index = (rolling_index + 1) % ARRAY_SIZE;
+    
     last_time = msg.header.stamp;
     last_tick = msg.ticks;
     
