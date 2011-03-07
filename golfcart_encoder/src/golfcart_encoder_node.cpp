@@ -3,6 +3,7 @@
 #include <math.h>
 #include <unistd.h>
 #include <limits.h>
+#include <boost/thread.hpp>
 #include "ros/ros.h"
 #include "golfcart_encoder/GolfcartEncoder.h"
 #include "simple_serial.h"
@@ -21,6 +22,11 @@ struct EncoderParams {
   string compass_port;
 };
 
+EncoderParams eParams;
+string compass_data;
+bool Exit;
+
+
 double parseCompass(string s) {
   if(s.length() < 7)
     return 0;  
@@ -28,17 +34,42 @@ double parseCompass(string s) {
 }
 
 
+/**
+ * Since the compass sends data at 40Hz compared to the ardiuno's 10Hz,
+ * a seperate thread is necessary to aquire compass data in order to prevent
+ * a build up of latency.
+ */
+void compassThread() {
+
+  SimpleSerial* compass_port;
+
+  // Open Compass Serial Port
+  try {
+    compass_port = new SimpleSerial(eParams.compass_port, BAUD);
+  } catch (...) {
+    ROS_ERROR("golfcart_encoder: Error trying to open serial port %s\n", 
+      eParams.compass_port.c_str());
+    return;
+  }
+  
+  while(!Exit) {
+  	compass_data = compass_port->readLine();
+  }
+}
+
+
+
 int main(int argc, char **argv) {
   int last_tick = 0, delta_tick = 0, rolling_index = 0;
   double speed[ARRAY_SIZE] = {0};
   double avg_speed = 0;
+  Exit = false;
+  
   ros::Time last_time;
   ros::Duration delta_time;
-  EncoderParams eParams;
   
   SimpleSerial* encoder_port;
-  SimpleSerial* compass_port;
-  
+
   ros::init(argc, argv, "golfcart_encoder");
   ros::NodeHandle nh;
   
@@ -83,14 +114,8 @@ int main(int argc, char **argv) {
     return -1;
   }
   
-  // Open Compass Serial Port
-  try {
-    compass_port = new SimpleSerial(eParams.compass_port, BAUD);
-  } catch (...) {
-    ROS_ERROR("golfcart_encoder: Error trying to open serial port %s\n", 
-      eParams.compass_port.c_str());
-    return -1;
-  }
+  // Set Up Compass
+  boost::thread CompassThread(compassThread);  
   
   ros::Publisher pb = 
     nh.advertise<golfcart_encoder::GolfcartEncoder>("encoder", 1);
@@ -106,7 +131,7 @@ int main(int argc, char **argv) {
     
     // Read from encoders
     msg.ticks = atoi(encoder_port->readLine().c_str());
-    msg.heading = parseCompass(compass_port->readLine());
+    msg.heading = parseCompass(compass_data);
     msg.header.stamp = ros::Time::now();
     
     // Calculate Speed
@@ -129,12 +154,13 @@ int main(int argc, char **argv) {
     avg_speed /= ARRAY_SIZE;
     
     msg.speed = avg_speed;
-    
     pb.publish(msg);
     
-    ros::spinOnce();
-    loop_rate.sleep();
+    //ros::spinOnce();
+    //loop_rate.sleep();
   }
+  
+  Exit = true;
   
   return 0;
 }
