@@ -74,7 +74,7 @@ int main(int argc, char **argv)
   );
   
   while(ros::ok()) {
-    
+
     filter.RunIteration(
         encoder_data.ticks, 
         gps_data.latitude, 

@@ -2,7 +2,6 @@
  * Notes: 
  * right now this particle filter assumes all motion is forward in direction.
  */
-
 #include <ctime> 
 #include <cstdlib> 
 #include <math.h>
@@ -52,8 +51,8 @@ void ParticleFilter::RunIteration(int odomTicks, double lat, double lon, double 
   	ty_total += sin(heading * D2R);
   }
   
-  this->currX = x_total;
-  this->currY = y_total;
+  this->currX = x_total / ParticleList.size();
+  this->currY = y_total / ParticleList.size();
   this->currHeading = R2D * atan2(ty_total, tx_total);
 }
 
@@ -95,6 +94,7 @@ void ParticleFilter :: ResampleParticles() {
 
 void ParticleFilter::PropogateParticles(int odomTicks, double lat, double lon, double heading) {
   int deltaTick = odomTicks - lastTick;
+  lastTick = odomTicks;
   
   // Check for encoder rollover
   if( deltaTick < 0) {
@@ -102,20 +102,32 @@ void ParticleFilter::PropogateParticles(int odomTicks, double lat, double lon, d
   }
   
   double distTravelled = deltaTick * odomModel.wheelCircum / odomModel.ticksPerRev;
-  double angleTraveled;
+  double angleTraveled = heading - currHeading;
+  
+  //std::cout << "\t distTravelled: " << distTravelled << std::endl;
+  //std::cout << "\t angleTraveled: " << angleTraveled << std::endl;
   
   // Propogate each particle
   highestWeight = 0;  
-  for(unsigned int i = 0; i < ParticleList.size(); i++) {
-  	angleTraveled = heading - ParticleList[i].Heading;
-  	
+  for(unsigned int i = 0; i < ParticleList.size(); i++) {  	
     // Add randomness
-    double trans = distTravelled - sample_normal_dist(0.1 * angleTraveled + 0.5 * distTravelled);
-    double rot   = angleTraveled - sample_normal_dist(0.5 * angleTraveled + 0.1 * distTravelled);
+    double trans = distTravelled - sample_normal_dist(0.1 * distTravelled);
+    double rot   = angleTraveled - sample_normal_dist(0.1 * angleTraveled);
+    
     
     PropogatedList[i].X = ParticleList[i].X + trans * cos(D2R * ParticleList[i].Heading + D2R * angleTraveled);
     PropogatedList[i].Y = ParticleList[i].Y + trans * sin(D2R * ParticleList[i].Heading + D2R * angleTraveled);;
     PropogatedList[i].Heading = addAngle(ParticleList[i].Heading, rot);
+    
+    /*
+    if( i == 0) {
+        std::cout << "\t trans: " << trans << std::endl;
+        std::cout << "\t rot: " << rot << std::endl;
+        std::cout << "\t PropogatedList[i].X " << PropogatedList[i].X << std::endl;
+        std::cout << "\t PropogatedList[i].Y: " << PropogatedList[i].Y << std::endl;
+        std::cout << "\t PropogatedList[i].Heading: " << PropogatedList[i].Heading << std::endl;
+    }
+    */
     
     WeightParticle (lat, lon, PropogatedList[i] );
     
@@ -145,6 +157,7 @@ double ParticleFilter :: addAngle( double ang1, double ang2 ) {
  * variance 'var'.
  */
 double ParticleFilter :: sample_normal_dist(double var) {
+  if ( var == 0 ) return 0;
   double sum = 0;
   double stddev = sqrt ( var );
   for ( int i = 0; i < 12; ++i ) {
