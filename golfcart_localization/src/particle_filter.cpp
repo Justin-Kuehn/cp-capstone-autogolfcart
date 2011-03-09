@@ -1,3 +1,8 @@
+/*
+ * Notes: 
+ * right now this particle filter assumes all motion is forward in direction.
+ */
+
 #include <ctime> 
 #include <cstdlib> 
 #include <math.h>
@@ -58,6 +63,7 @@ void ParticleFilter :: ResampleParticles() {
   vector<Particle> sampleSpace (NUM_PARTICLES);
   
 	for(unsigned int i = 0; i < PropogatedList.size(); i++) {
+	  // This normalizes the weights around 1
 	  PropogatedList[i].Weight = PropogatedList[i].Weight / highestWeight;
 	  
 	  if(PropogatedList[i].Weight > 0.8) {
@@ -119,7 +125,10 @@ void ParticleFilter::PropogateParticles(int odomTicks, double lat, double lon, d
 }
 
 void ParticleFilter::WeightParticle(double lat, double lon, Particle &src) {
-	src.Weight = 0;
+  double x,y,distFromGPS;
+  GPS2Point(lat, lon, x, y);
+  distFromGPS = sqrt( pow(src.X - x, 2) + pow(src.Y - y, 2) );
+	src.Weight = exp ( -0.5 * (distFromGPS * distFromGPS) / (GPS_ERROR * GPS_ERROR) );
 }
 
 /*
@@ -141,6 +150,25 @@ double ParticleFilter :: sample_normal_dist(double var) {
   for ( int i = 0; i < 12; ++i ) {
     sum += (rand() / (static_cast<double>(RAND_MAX) + 1.0)) * (2 * stddev) - stddev;
   }
-  return sum;
+  return 0.5 * sum;
+}
+
+/*
+ * Converts a lat long pair to a cartesian point relative to the 
+ * startLon, startLat.  North is positive y, East is positive X.
+ */
+void ParticleFilter :: GPS2Point(double lat, double lon, double& x, double& y) {
+
+  double dist = acos( sin(startLat*D2R) * sin(lat*D2R) +
+                      cos(startLat*D2R) * cos(lat*D2R) *
+                      cos(lat*D2R - startLat*D2R) * EARTH_RADIUS );
+  double x_angle = sin(abs(startLat - lat) * D2R) * cos(lat * D2R);
+  double y_angle = cos(startLat * D2R) * sin(lat * D2R) - 
+                   sin(startLat * D2R) * cos(lat * D2R) * 
+                   cos(abs(startLon - lon) * D2R);
+  double angle = atan2(y_angle,x_angle);
+  
+  x = dist * cos(angle);
+  y = dist * sin(angle);
 }
       

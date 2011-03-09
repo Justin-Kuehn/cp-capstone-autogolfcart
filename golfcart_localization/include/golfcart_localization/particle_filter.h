@@ -25,7 +25,10 @@ typedef struct PARTICLE_t {
 class ParticleFilter {
   static const double D2R = 0.0174532925; // Degrees to Rad
   static const double R2D = 57.2957795;   // Radians to Deg
+  static const double EARTH_RADIUS = 6378100;     // Meters
+  static const double GPS_ERROR = 1.5;            // Meters
   static const int NUM_PARTICLES = 100;
+
   static const int startX = 0;
   static const int startY = 0;
   
@@ -48,8 +51,16 @@ public:
 
   ParticleFilter() {};
   
+  void getPose(double& x, double &y, double &heading) {
+    x = currX; 
+    y = currY; 
+    heading = currHeading; 
+  }
+  double getX() { return currX; }
+  double getY() { return currY; }
+  double getHeading() { return currHeading; }
   /*
-   * Initializes
+   * Initializes the particle filter. Must be called before RunIteration().
    */
   void Init(
       double startLat,     // deg
@@ -93,13 +104,21 @@ private:
    * Resamples all particles based on each particles weight
    */
   void ResampleParticles();
- 
- /*
-  * Randomly samples a zero centered normal distribution from a with
-  * variance var.
-  */
+  /*
+   * Converts a lat long pair to a cartesian point relative to the 
+   * startLon, startLat.  North is positive y, East is positive X.
+   */
+  void GPS2Point(double lat, double lon, double& x, double& y);
+  /*
+   * Converts a cartesian point to a lat lon that is relative to 
+   * startLon, startLat.  North is positive y, East is positive X.
+   */
+  void Point2GPS(double lat, double lon, double& x, double& y);
+  /*
+   * Randomly samples a zero centered normal distribution from a with
+   * variance var.
+   */
   double sample_normal_dist(double var);
-  
   /*
    * Adds two angles together correcting for rollover in degrees
    */

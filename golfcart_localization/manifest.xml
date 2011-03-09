@@ -9,7 +9,9 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/golfcart_localization</url>
   <depend package="roscpp"/>
-
+  <depend package="geometry_msgs"/>
+  <depend package="golfcart_encoder"/>
+  <depend package="gps_common"/>
 </package>
 
 
