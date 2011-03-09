@@ -1,8 +1,10 @@
 #include "golfcart_pilot/PilotNode.h"
 
+// Absolute command sets state to input
 void PilotNode::absoluteCommandCallback(const geometry_msgs::Twist::ConstPtr &m) {
     geometry_msgs::Twist nM(*m);
     uint8_t steer(stParams.encCen + stParams.ticPerRad * m->angular.y);
+    // Clamp
     if (steer < stParams.encMin) {
         ROS_WARN("Trying to turn to %d, clamping at %d", steer, stParams.encMin);
         steer = stParams.encMin;
@@ -14,6 +16,7 @@ void PilotNode::absoluteCommandCallback(const geometry_msgs::Twist::ConstPtr &m)
     }
 
     uint16_t speed(spParams.min + spParams.ticPerPercent * m->linear.x);
+    // Clamp
     if (speed > spParams.max) {
         ROS_WARN("Trying to accelerate to %d, clamping at %d", speed, spParams.max);
         speed = spParams.max;
@@ -24,6 +27,7 @@ void PilotNode::absoluteCommandCallback(const geometry_msgs::Twist::ConstPtr &m)
     }
 
     if (sendSteeringCommand(steer) && sendSpeedCommand(speed)) {
+        // Only update our state if command successful
         state = nM;
     } else {
         ROS_ERROR("Command failed!");
@@ -61,6 +65,7 @@ bool PilotNode::sendSpeedCommand(uint8_t value) {
     return arduino.call(cmd);
 }
 
+// Relative command treats input as delta relative to current state
 void PilotNode::relativeCommandCallback(const geometry_msgs::Twist::ConstPtr &m) {
     geometry_msgs::Twist::Ptr nState(new geometry_msgs::Twist());
     nState->angular.x = state.angular.x + m->angular.x;
@@ -135,8 +140,6 @@ bool PilotNode::init() {
         return false;
     }
 
-
-
     n.getParam("/golfcart_pilot/steering_channel", stParams.chan);
     n.getParam("/golfcart_pilot/steering_max_enc", stParams.encMax);
     n.getParam("/golfcart_pilot/steering_center_enc", stParams.encCen);
@@ -168,6 +171,7 @@ bool PilotNode::init() {
     if (!connect())
         return false;
 
+    // Center the steering ourselves
     if (sendSteeringCommand(stParams.encCen)) {
         state.angular.x = 0;
         state.angular.y = 0;
