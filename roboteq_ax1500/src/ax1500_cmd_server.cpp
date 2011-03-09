@@ -14,6 +14,7 @@ using namespace boost;
 typedef scoped_ptr<asio::io_service> io_service_ptr;
 typedef scoped_ptr<asio::serial_port> serial_port_ptr;
 
+// Commands - See AX1500 reference manual
 static const string RESET("%rrrrrr");
 static const string CH1_FORWARD("!A");
 static const string CH1_REVERSE("!a");
@@ -34,6 +35,7 @@ static const char KEEP_ALIVE = 'Z';
 static io_service_ptr io_ptr;
 static serial_port_ptr sp_ptr;
 
+// Channel Forward handler
 bool channel_forward(roboteq_ax1500::channel_forward::Request &req,
         roboteq_ax1500::channel_forward::Response &res) {
     ROS_INFO("channel_forward: channel=%d, value=%x", req.channel, req.value);
@@ -52,9 +54,11 @@ bool channel_forward(roboteq_ax1500::channel_forward::Request &req,
 
     bool r = true;
     char *sptr = send, *rptr = ret;
+    // Verify what we sent is echoed back
     for ( ; *sptr; sptr++, rptr++) {
         r &= (*sptr == *rptr);
     }
+    // Successful command ends in "+\r"
     if (*rptr != '+') {
         ROS_ERROR("channel_foward: expected %d, got %d", '+', *rptr);
         r = false;
@@ -91,12 +95,18 @@ int main(int argc, char **argv) {
 
     ros::ServiceServer channelForward = n.advertiseService("channel_forward", channel_forward);
 
+    /*
+     * If the watchdog timer is active, the AX1500 expects input at least once every second otherwise
+     * it kills the motors and outputs 'W' characters until connection is restored. So, every 0.25 seconds
+     * send KEEP_ALIVE to the AX1500 and check that AX1500 is echoed back.
+     */
     while (ros::ok()) {
         char ret;
         asio::write(*sp_ptr, boost::asio::buffer(&KEEP_ALIVE, 1));
         asio::read(*sp_ptr, boost::asio::buffer(&ret, 1));
         if (ret != KEEP_ALIVE)
             ROS_WARN("Keep Alive Failure: expected %d, got %d", KEEP_ALIVE, ret);
+        // Execute from the callback queue (service requests, message handling, etc) for 0.25 seconds
         ros::getGlobalCallbackQueue()->callAvailable(ros::WallDuration(0.25));
     }
 
