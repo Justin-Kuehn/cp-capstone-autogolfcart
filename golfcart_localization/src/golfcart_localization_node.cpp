@@ -73,6 +73,8 @@ int main(int argc, char **argv)
       odomModel
   );
   
+  ROS_INFO("Done! Running filter.");
+  
   while(ros::ok()) {
 
     filter.RunIteration(

@@ -21,12 +21,12 @@ void ParticleFilter::Init(double startLat, double startLon, double startHeading,
   for(unsigned int i = 0; i < ParticleList.size(); i++) {
     ParticleList[i].X = startX;
     ParticleList[i].Y = startY;
-    ParticleList[i].Heading = startHeading;
+    ParticleList[i].Heading = 0;
   }
   
   currX = startX;
   currY = startY;
-  currHeading = startHeading;
+  currHeading = 0;
   
   srand(time(0));  // Initialize random number generator.
 }
@@ -51,9 +51,11 @@ void ParticleFilter::RunIteration(int odomTicks, double lat, double lon, double 
   	ty_total += sin(heading * D2R);
   }
   
+  tx_total /= ParticleList.size();
+  ty_total /= ParticleList.size();
   this->currX = x_total / ParticleList.size();
   this->currY = y_total / ParticleList.size();
-  this->currHeading = R2D * atan2(ty_total, tx_total);
+  this->currHeading = addAngle(R2D * atan2(ty_total, tx_total), 0);
 }
 
 void ParticleFilter :: ResampleParticles() {
@@ -102,7 +104,7 @@ void ParticleFilter::PropogateParticles(int odomTicks, double lat, double lon, d
   }
   
   double distTravelled = deltaTick * odomModel.wheelCircum / odomModel.ticksPerRev;
-  double angleTraveled = heading - currHeading;
+  double angleTraveled = heading - addAngle(currHeading, - startHeading);
   
   //std::cout << "\t distTravelled: " << distTravelled << std::endl;
   //std::cout << "\t angleTraveled: " << angleTraveled << std::endl;
@@ -111,9 +113,8 @@ void ParticleFilter::PropogateParticles(int odomTicks, double lat, double lon, d
   highestWeight = 0;  
   for(unsigned int i = 0; i < ParticleList.size(); i++) {  	
     // Add randomness
-    double trans = distTravelled - sample_normal_dist(0.1 * distTravelled);
-    double rot   = angleTraveled - sample_normal_dist(0.1 * angleTraveled);
-    
+    double trans = distTravelled - sample_normal_dist(0.1 * abs(distTravelled));
+    double rot   = angleTraveled - sample_normal_dist(0.1 * abs(angleTraveled));    
     
     PropogatedList[i].X = ParticleList[i].X + trans * cos(D2R * ParticleList[i].Heading + D2R * angleTraveled);
     PropogatedList[i].Y = ParticleList[i].Y + trans * sin(D2R * ParticleList[i].Heading + D2R * angleTraveled);;
@@ -136,28 +137,29 @@ void ParticleFilter::PropogateParticles(int odomTicks, double lat, double lon, d
   }
 }
 
+/*
+ * Assign a weight to the particle based on how far it is away from 
+ */
 void ParticleFilter::WeightParticle(double lat, double lon, Particle &src) {
   double x,y,distFromGPS;
   GPS2Point(lat, lon, x, y);
   distFromGPS = sqrt( pow(src.X - x, 2) + pow(src.Y - y, 2) );
-	src.Weight = exp ( -0.5 * (distFromGPS * distFromGPS) / (GPS_ERROR * GPS_ERROR) );
+  src.Weight = exp ( -0.5 * (distFromGPS * distFromGPS) / (GPS_ERROR * GPS_ERROR) );
 }
 
 /*
 * Adds two angles together correcting for rollover in degrees
 */
 double ParticleFilter :: addAngle( double ang1, double ang2 ) {
-  double sum = ang1 + ang2;
-  while (sum > 360) sum -= 360;
-  while (sum < 0 )	sum += 360;
-  return sum;
+  return abs((ang1 + ang2) % 361);
 }
+
 /*
  * Randomly samples a zero centered normal distribution from a with
  * variance 'var'.
  */
 double ParticleFilter :: sample_normal_dist(double var) {
-  if ( var == 0 ) return 0;
+  if ( var <= 0 ) return 0;
   double sum = 0;
   double stddev = sqrt ( var );
   for ( int i = 0; i < 12; ++i ) {
@@ -171,7 +173,7 @@ double ParticleFilter :: sample_normal_dist(double var) {
  * startLon, startLat.  North is positive y, East is positive X.
  */
 void ParticleFilter :: GPS2Point(double lat, double lon, double& x, double& y) {
-
+	
   double dist = acos( sin(startLat*D2R) * sin(lat*D2R) +
                       cos(startLat*D2R) * cos(lat*D2R) *
                       cos(lat*D2R - startLat*D2R) * EARTH_RADIUS );
@@ -179,9 +181,11 @@ void ParticleFilter :: GPS2Point(double lat, double lon, double& x, double& y) {
   double y_angle = cos(startLat * D2R) * sin(lat * D2R) - 
                    sin(startLat * D2R) * cos(lat * D2R) * 
                    cos(abs(startLon - lon) * D2R);
-  double angle = atan2(y_angle,x_angle);
+  double angle = addAngle(atan2(y_angle, x_angle), -startAngle);
   
   x = dist * cos(angle);
   y = dist * sin(angle);
 }
+
+
       

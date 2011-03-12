@@ -93,7 +93,8 @@ private:
       double heading     // deg
       );
   /*
-   * Assigns a weight to the particle based on the given gps coordinates.
+   * Assigns a weight to the particle based on the distance of each particle 
+   * from the given gps coordinates.
    */
   void WeightParticle(
       double lat,         // deg
@@ -110,15 +111,14 @@ private:
    */
   void GPS2Point(double lat, double lon, double& x, double& y);
   /*
-   * Converts a cartesian point to a lat lon that is relative to 
-   * startLon, startLat.  North is positive y, East is positive X.
-   */
-  void Point2GPS(double lat, double lon, double& x, double& y);
-  /*
    * Randomly samples a zero centered normal distribution from a with
    * variance var.
    */
   double sample_normal_dist(double var);
+  /*
+   * Adds two angles together correcting for rollover in degrees
+   */
+  double addAngle(double a1, double a2);
   /*
    * Adds two angles together correcting for rollover in degrees
    */
