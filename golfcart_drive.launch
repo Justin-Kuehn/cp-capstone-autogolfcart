@@ -1,0 +1,11 @@
+<launch>
+	<!-- Load all the necessary params from their respective files -->
+	
+	<rosparam command="load" file="$(find golfcart_pilot)/golfcart_pilot.yaml" />
+	
+	<!-- Start the necessary Nodes -->
+	
+	<node name="roboteq_ax1500" pkg="roboteq_ax1500" type="ax1500_cmd_server" args="_tty:=/dev/ttyUSB0" "respawn="true" />
+	<node name="pmad" pkg="pmad" type="pmad_service.py" respawn="true" />
+	<node name="golfcart_pilot" pkg="golfcart_pilot" type="golfcart_pilot" respawn="true" />
+</launch>
