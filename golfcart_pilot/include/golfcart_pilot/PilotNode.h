@@ -8,21 +8,21 @@
 #include "pmad/Switch.h"
 
 struct SteeringParams {
-    int chan;
-    int encMin;
-    int encCen;
-    int encMax;
-    double radPerTic;
-    double ticPerRad;
-    double minRad;
-    double maxRad;
-    double range;
+    int chan;           // AX1500 channel
+    int encMin;         // Linear encoder value when full left
+    int encCen;         // Linear encoder value when centered
+    int encMax;         // Linear encoder value when full right
+    double radPerTic;   // Radians / Encoder Tic
+    double ticPerRad;   // Tics / Radian
+    double minRad;      // Radian delta from center when steering left
+    double maxRad;      // Radian delta from center when steering right
+    double range;       // Steering range in radians
 };
 
 struct SpeedParams {
-    int min;
-    int max;
-    double ticPerPercent;
+    int min;                // Minimum valid speed value for arduino
+    int max;                // Maximum valid speed value for arduino
+    double ticPerPercent;   // Tics / Percent
 };
 
 class PilotNode {
