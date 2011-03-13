@@ -1,0 +1,8 @@
+<launch>
+	<!-- Load all the necessary params from their respective files -->
+	<rosparam command="load" file="$(find golfcart_encoder)/golfcart_encoder.yaml" />
+	<!-- Start the necessary Nodes -->
+	<node name="golfcart_encoder" pkg="golfcart_encoder" type="golfcart_encoder" respawn="true" />
+	<node name="gpsd_client" pkg="gpsd_client" type="gpsd_client" respawn="true" />
+	<node name="golfcart_localization" pkg="golfcart_localization" type="golfcart_localization" respawn="true" />
+</launch>
