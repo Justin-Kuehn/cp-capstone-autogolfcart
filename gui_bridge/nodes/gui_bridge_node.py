@@ -5,6 +5,16 @@ import socket
 from geometry_msgs.msg import Twist, Vector3
 from golfcart_encoder.msg import GolfcartEncoder
 
+# Data structure to send to the GUI
+GUIData = {'latitude': 0, 'longitude': 0, 'heading': 0}
+
+def gps_callback(data):
+	GUIData['latitude'] = data['latitude']
+	GUIData['longitude'] = data['longitude']
+
+def encoder_callback(data):
+	GUIData['heading'] = data['heading']
+
 def gui_bridge():	
 	#setup ROS node
 	rospy.init_node('gui_bridge')

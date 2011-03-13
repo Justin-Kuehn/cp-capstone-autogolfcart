@@ -34,7 +34,7 @@ void ParticleFilter::Init(double startLat, double startLon, double startHeading,
 void ParticleFilter::RunIteration(int odomTicks, double lat, double lon, double heading, double deltaTime) {
   if(odomTicks == lastTick) return; // Do nothing if we have not moved
   
-  PropogateParticles(odomTicks, lat, lon, heading);
+  PropogateParticles(odomTicks, lat, lon, addAngle(heading, -startHeading));
   
   ResampleParticles();
 
@@ -47,8 +47,8 @@ void ParticleFilter::RunIteration(int odomTicks, double lat, double lon, double 
   for(unsigned int i = 0; i < ParticleList.size(); i++) {
   	x_total += ParticleList[i].X;
   	y_total += ParticleList[i].Y;
-  	tx_total += cos(heading * D2R);
-  	ty_total += sin(heading * D2R);
+  	tx_total += cos(ParticleList[i].Heading * D2R);
+  	ty_total += sin(ParticleList[i].Heading * D2R);
   }
   
   tx_total /= ParticleList.size();
@@ -104,7 +104,7 @@ void ParticleFilter::PropogateParticles(int odomTicks, double lat, double lon, d
   }
   
   double distTravelled = deltaTick * odomModel.wheelCircum / odomModel.ticksPerRev;
-  double angleTraveled = heading - addAngle(currHeading, - startHeading);
+  double angleTraveled = heading - currHeading;
   
   //std::cout << "\t distTravelled: " << distTravelled << std::endl;
   //std::cout << "\t angleTraveled: " << angleTraveled << std::endl;
@@ -113,11 +113,11 @@ void ParticleFilter::PropogateParticles(int odomTicks, double lat, double lon, d
   highestWeight = 0;  
   for(unsigned int i = 0; i < ParticleList.size(); i++) {  	
     // Add randomness
-    double trans = distTravelled - sample_normal_dist(0.1 * abs(distTravelled));
-    double rot   = angleTraveled - sample_normal_dist(0.1 * abs(angleTraveled));    
+    double trans = distTravelled - sample_normal_dist(0.05 * abs(distTravelled));
+    double rot   = angleTraveled - sample_normal_dist(0.05 * abs(angleTraveled));    
     
-    PropogatedList[i].X = ParticleList[i].X + trans * cos(D2R * ParticleList[i].Heading + D2R * angleTraveled);
-    PropogatedList[i].Y = ParticleList[i].Y + trans * sin(D2R * ParticleList[i].Heading + D2R * angleTraveled);;
+    PropogatedList[i].X = ParticleList[i].X + trans * cos( D2R * (ParticleList[i].Heading + rot) );
+    PropogatedList[i].Y = ParticleList[i].Y + trans * sin( D2R * (ParticleList[i].Heading + rot) );
     PropogatedList[i].Heading = addAngle(ParticleList[i].Heading, rot);
     
     /*
@@ -130,6 +130,8 @@ void ParticleFilter::PropogateParticles(int odomTicks, double lat, double lon, d
     }
     */
     
+    //highestWeight = 0;
+
     WeightParticle (lat, lon, PropogatedList[i] );
     
     if(highestWeight < PropogatedList[i].Weight) 
@@ -151,7 +153,10 @@ void ParticleFilter::WeightParticle(double lat, double lon, Particle &src) {
 * Adds two angles together correcting for rollover in degrees
 */
 double ParticleFilter :: addAngle( double ang1, double ang2 ) {
-  return abs((ang1 + ang2) % 361);
+  double sum = ang1 + ang2;
+  while(sum > 360) sum -= 360;
+  while(sum < 0) sum += 360;
+  return sum; 
 }
 
 /*
@@ -181,7 +186,7 @@ void ParticleFilter :: GPS2Point(double lat, double lon, double& x, double& y) {
   double y_angle = cos(startLat * D2R) * sin(lat * D2R) - 
                    sin(startLat * D2R) * cos(lat * D2R) * 
                    cos(abs(startLon - lon) * D2R);
-  double angle = addAngle(atan2(y_angle, x_angle), -startAngle);
+  double angle = addAngle(atan2(y_angle, x_angle), -startHeading);
   
   x = dist * cos(angle);
   y = dist * sin(angle);

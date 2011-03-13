@@ -119,10 +119,6 @@ private:
    * Adds two angles together correcting for rollover in degrees
    */
   double addAngle(double a1, double a2);
-  /*
-   * Adds two angles together correcting for rollover in degrees
-   */
-  double addAngle(double a1, double a2);
     
 };
 
