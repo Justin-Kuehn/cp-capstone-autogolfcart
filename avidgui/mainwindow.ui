@@ -285,8 +285,7 @@ p, li { white-space: pre-wrap; }
         </widget>
        </item>
        <item row="4" column="1">
-        <widget class="QLineEdit" name="address">
-        </widget>
+        <widget class="QLineEdit" name="address"/>
        </item>
        <item row="4" column="0">
         <widget class="QLabel" name="label_2">
@@ -340,7 +339,7 @@ p, li { white-space: pre-wrap; }
         <x>10</x>
         <y>10</y>
         <width>361</width>
-        <height>221</height>
+        <height>232</height>
        </rect>
       </property>
       <layout class="QFormLayout" name="formLayout_19">
@@ -493,36 +492,6 @@ p, li { white-space: pre-wrap; }
          </property>
         </widget>
        </item>
-       <item row="7" column="1">
-        <widget class="QCheckBox" name="show_sends">
-         <property name="text">
-          <string>Show sends</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="1">
-        <widget class="QCheckBox" name="show_receives">
-         <property name="text">
-          <string>Show receives</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="1">
-        <widget class="QCheckBox" name="show_dbw">
-         <property name="text">
-          <string>Show DBW sends</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
        <item row="6" column="1">
         <spacer name="verticalSpacer">
          <property name="orientation">
@@ -548,6 +517,26 @@ p, li { white-space: pre-wrap; }
           </size>
          </property>
         </spacer>
+       </item>
+       <item row="7" column="1">
+        <widget class="QCheckBox" name="show_receives">
+         <property name="text">
+          <string>Show receives</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="1">
+        <widget class="QCheckBox" name="show_dbw">
+         <property name="text">
+          <string>Show DBW sends</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -838,7 +827,7 @@ p, li { white-space: pre-wrap; }
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

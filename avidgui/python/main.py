@@ -4,7 +4,8 @@
 #
 
 # system imports
-import sys, socket, time, signal
+import sys, socket, time, signal, threading
+from PyQt4.QtCore import QUrl
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from mainwindow import Ui_MainWindow		
@@ -12,33 +13,32 @@ from mainwindow import Ui_MainWindow
 # my imports
 import backend, googlemap
 
-# my events
-update_event = pyqtSignal(int, QWidget)
-
 #
 # Class MainWindow
 #	
+status = {
+	'speed' : 0,
+	'wheel' : 0,
+	'latitude' : 0,
+	'longitude' : 0,
+	'heading' : 0,
+	'x' : 0,
+	'y' : 0
+}
+backend = backend.Backend()
 class MainWindow(QMainWindow, Ui_MainWindow):
-	status = {
-		'speed' : 0,
-		'wheel' : 0,
-		'latitude' : 0,
-		'longitude' : 0,
-		'heading' : 0,
-		'x' : 0,
-		'y' : 0
-	}
+	prev_sends = ""
+	prev_recvs = ""
 	
 	connected = False
 	
-	defaultmap = QUrl("http://maps.google.com/maps?ie=UTF8&ll=35.300215,-120.660439&spn=0.00641,0.017982&z=17&output=embed")
+	defaultmap = "http://maps.google.com/maps?ie=UTF8&ll=35.300215,-120.660439&spn=0.00641,0.017982&z=17&output=embed"
 	
 	def __init__(self):
 		QMainWindow.__init__(self)	
 		self.setupUi(self)
 	  	
 	  	self.googlemap = googlemap.MapHtmlGenerator()
-		self.backend = backend.Backend()
 		
 		# Bind events
 		# Buttons
@@ -56,63 +56,62 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 		QObject.connect(self.action_exit, SIGNAL("triggered()"), self.exit)
 		QObject.connect(self.action_about, SIGNAL("triggered()"), self.about)
 		QObject.connect(self.action_map, SIGNAL("triggered()"), self.reset_map)
-			
-		# Custom signals
-		self.timer = QTimer()
-		QObject.connect(self.timer, SIGNAL("timeout()"), self.run_update)
-	
-	def send_status(self):
-		if not self.backend.send_command(self.status):
-			return
-		if self.show_sends.isChecked():
-			self.console.append('>> ' + str(self.status))
-	
-	def run_update(self):
-		self.get_status()
-		self.send_status()
-	
+		
+		#Timers
+		self.get_timer = QTimer()
+		QObject.connect(self.get_timer, SIGNAL("timeout()"), self.get_status)
+		
+		#Threads
+		self.sender = Send()
+		self.receive = Receive()
+		
 	def get_status(self):
-		status = self.backend.get_status()
+		global status
 		if not status:
 			return
-		if self.show_receives.isChecked():
+		if self.show_receives.isChecked() and self.prev_sends != str(status):
 			self.console.append('<< ' + str(status))
-		
-		if 'latitude' in status and self.status['latitude'] is not status['latitude']:
+			
+		self.prev_sends = str(status)
+		if 'latitude' in status and status['latitude'] is not status['latitude']:
 			self.map_lookup(status['latitude'], status['longitude'])
 		
 		# Ensure stuff for 'security'
 		if 'speed' in status:
-			self.status['speed'] = int(status['speed'])
-			print status
+			status['speed'] = int(status['speed'])
 		if 'wheel' in status:
-			self.status['wheel'] = int(status['wheel'])
-			print status
+			status['wheel'] = int(status['wheel'])
 		if 'latitude' in status:
-			self.status['latitude'] = int(status['latitude'])
+			status['latitude'] = int(status['latitude'])
 		if 'longitude' in status:
-			self.status['longitude'] = int(status['longitude'])
+			status['longitude'] = int(status['longitude'])
 		if 'heading' in status:
-			self.status['heading'] = int(status['heading'])
+			status['heading'] = int(status['heading'])
 		if 'x' in status:
-			self.status['x'] = int(status['x'])
+			status['x'] = int(status['x'])
 		if 'y' in status:
-			self.status['y'] = int(status['y'])
+			status['y'] = int(status['y'])
 		
-		self.status_wheel.setText( str(self.status['wheel']))
-		self.status_speed.setText( str(self.status['speed']))
-		self.status_latitude.setText( str(self.status['latitude']))
-		self.status_longitude.setText( str(self.status['longitude']))
-		self.status_compass.setText( str(self.status['heading']))
+		self.status_wheel.setText( str(status['wheel']))
+		self.status_speed.setText( str(status['speed']))
+		self.status_latitude.setText( str(status['latitude']))
+		self.status_longitude.setText( str(status['longitude']))
+		self.status_compass.setText( str(status['heading']))
 	
 	def action_disconnect(self):
-		self.backend.disconnect()
+		global backend
+		backend.disconnect()
 		self.connected = False
 		self.set_connection_status(False)
 		self.console.append("Disconnected")
-		self.timer.stop()
+		self.get_timer.stop()
+		self.sender.stop = True
+		self.receive.stop = True
+		self.sender.join()
+		self.receive.join()
 	
 	def action_connect(self):
+		global backend
 		host = str(self.ip.displayText().replace(' ',''))
 		port = int(self.port.displayText().replace(' ',''))
 		
@@ -120,13 +119,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 			self.info("Error", "Invalid values")
 			return
 		
-		result = self.backend.connect(host,port)
+		result = backend.connect(host,port)
 		if not result['success']:
 			self.info("Error Connecting", result['message'])
 			return
 		self.set_connection_status(True)
-		self.timer.start(20)
 		self.console.append("Connected to %s on port %s" % (host, port))
+		self.get_timer.start()
+		self.sender.start()
+		self.receive.start()
 
 	def set_connection_status(self, connected):
 		self.connected = connected
@@ -140,23 +141,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 			self.connection_status_label.setText("Disconnected")
 	
 	def action_stop(self):
+		global status
 		if not self.connected: return
 		self.speed.setValue(0)
 		self.steering.setValue(0)
-		self.status['wheel'] = 0
-		self.status['speed'] = 0
+		status['wheel'] = 0
+		status['speed'] = 0
 		if self.show_dbw.isChecked():
 			self.console.append(">> speed = 0, wheel = 0")
 
 	def action_speed(self, val):
+		global status
 		if not self.connected: return
-		self.status['speed'] = val
+		status['speed'] = val
 		if self.show_dbw.isChecked():
 			self.console.append(">> speed = %d" % (val))
 	
 	def action_wheel(self, val):
+		global status
 		if not self.connected: return
-		self.status['wheel'] = val
+		status['wheel'] = val
 		if self.show_dbw.isChecked():
 			self.console.append(">> wheel = %d" % val)
 		
@@ -169,7 +173,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 		self.map.setHtml(html)
 	
 	def reset_map(self):
-		self.map.load(self.defaultmap)
+		self.map.load(QUrl(self.defaultmap))
 	
 	def map_lookup(self, lat = None, lon = None):
 		if not lat:
@@ -178,18 +182,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 			lon = self.longitude.displayText()
 		
 		try:
-			latitude = long(lat)
-			longitude = long(lon)
+			latitude = float(lat)
+			longitude = float(lon)
 		except Exception, e:
 			self.info("Error", "[%s] Latitude or longitude is not numeric" % e);
 			return
 		
-		html = self.googlemap.get_html(latitude, longitude)
+		html = self.googlemap.get_map_html(latitude, longitude)
 		self.map.setHtml(html)
 	
 	def exit(self):
+		global backend
 		if self.connected:
-			self.backend.disconnect()
+			backend.disconnect()
+			self.sender.stop = True
+			self.receiver.stop = True
+			self.sender.join()
+			self.receiver.join()
 		sys.exit(-1)
 	
 	def about(self):
@@ -199,6 +208,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 	def info(self, title="Notice",val="Error"):
 		QMessageBox.information(self, title, val, QMessageBox.Ok)
 
+class Send(threading.Thread):
+	def __init__(self):
+		threading.Thread.__init__(self)
+		self.stop = False	
+		
+	def run(self):
+		global status
+		global backend
+		while not self.stop:
+			if status:
+				backend.send_command(status)
+			time.sleep(.2)
+
+class Receive(threading.Thread):
+	def __init__(self):
+		threading.Thread.__init__(self)
+		self.stop = False	
+		
+	def run(self):
+		global status
+		global backend
+		
+		while not self.stop:
+			tstatus = backend.get_status()
+			if tstatus:
+				status = tstatus
+			time.sleep(.2)
 
 # Start main function
 def main(argv):

@@ -1,4 +1,4 @@
-/golfcart_encoder/wheel_cirum: 1.1
+/golfcart_encoder/wheel_cirum: 1.09228
 /golfcart_encoder/ticks_per_rev: 160
 /golfcart_encoder/max_encoder_ticks: 32000
 /golfcart_encoder/encoder_port: /dev/ttyUSB0

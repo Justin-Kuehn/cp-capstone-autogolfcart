@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'mainwindow.ui'
 #
-# Created: Sun Mar 13 16:15:25 2011
+# Created: Sun Mar 13 17:20:48 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -125,7 +125,7 @@ class Ui_MainWindow(object):
         self.tab_31 = QtGui.QWidget()
         self.tab_31.setObjectName("tab_31")
         self.formLayoutWidget_5 = QtGui.QWidget(self.tab_31)
-        self.formLayoutWidget_5.setGeometry(QtCore.QRect(10, 10, 361, 221))
+        self.formLayoutWidget_5.setGeometry(QtCore.QRect(10, 10, 361, 232))
         self.formLayoutWidget_5.setObjectName("formLayoutWidget_5")
         self.formLayout_19 = QtGui.QFormLayout(self.formLayoutWidget_5)
         self.formLayout_19.setFieldGrowthPolicy(QtGui.QFormLayout.AllNonFixedFieldsGrow)
@@ -192,22 +192,18 @@ class Ui_MainWindow(object):
         self.label.setFont(font)
         self.label.setObjectName("label")
         self.formLayout_19.setWidget(7, QtGui.QFormLayout.LabelRole, self.label)
-        self.show_sends = QtGui.QCheckBox(self.formLayoutWidget_5)
-        self.show_sends.setChecked(True)
-        self.show_sends.setObjectName("show_sends")
-        self.formLayout_19.setWidget(7, QtGui.QFormLayout.FieldRole, self.show_sends)
-        self.show_receives = QtGui.QCheckBox(self.formLayoutWidget_5)
-        self.show_receives.setChecked(True)
-        self.show_receives.setObjectName("show_receives")
-        self.formLayout_19.setWidget(8, QtGui.QFormLayout.FieldRole, self.show_receives)
-        self.show_dbw = QtGui.QCheckBox(self.formLayoutWidget_5)
-        self.show_dbw.setChecked(True)
-        self.show_dbw.setObjectName("show_dbw")
-        self.formLayout_19.setWidget(9, QtGui.QFormLayout.FieldRole, self.show_dbw)
         spacerItem3 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.formLayout_19.setItem(6, QtGui.QFormLayout.FieldRole, spacerItem3)
         spacerItem4 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.formLayout_19.setItem(10, QtGui.QFormLayout.FieldRole, spacerItem4)
+        self.show_receives = QtGui.QCheckBox(self.formLayoutWidget_5)
+        self.show_receives.setChecked(True)
+        self.show_receives.setObjectName("show_receives")
+        self.formLayout_19.setWidget(7, QtGui.QFormLayout.FieldRole, self.show_receives)
+        self.show_dbw = QtGui.QCheckBox(self.formLayoutWidget_5)
+        self.show_dbw.setChecked(True)
+        self.show_dbw.setObjectName("show_dbw")
+        self.formLayout_19.setWidget(8, QtGui.QFormLayout.FieldRole, self.show_dbw)
         self.tabWidget_2.addTab(self.tab_31, "")
         self.tab_32 = QtGui.QWidget()
         self.tab_32.setObjectName("tab_32")
@@ -338,7 +334,7 @@ class Ui_MainWindow(object):
         self.map.setObjectName("map")
         MainWindow.setCentralWidget(self.centralWidget)
         self.menuBar = QtGui.QMenuBar(MainWindow)
-        self.menuBar.setGeometry(QtCore.QRect(0, 0, 800, 22))
+        self.menuBar.setGeometry(QtCore.QRect(0, 0, 800, 25))
         self.menuBar.setObjectName("menuBar")
         self.menuFile = QtGui.QMenu(self.menuBar)
         self.menuFile.setObjectName("menuFile")
@@ -403,7 +399,6 @@ class Ui_MainWindow(object):
         self.label_63.setText(QtGui.QApplication.translate("MainWindow", "Connection", None, QtGui.QApplication.UnicodeUTF8))
         self.connection_status_label.setText(QtGui.QApplication.translate("MainWindow", "Disconnected", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("MainWindow", "Console Options", None, QtGui.QApplication.UnicodeUTF8))
-        self.show_sends.setText(QtGui.QApplication.translate("MainWindow", "Show sends", None, QtGui.QApplication.UnicodeUTF8))
         self.show_receives.setText(QtGui.QApplication.translate("MainWindow", "Show receives", None, QtGui.QApplication.UnicodeUTF8))
         self.show_dbw.setText(QtGui.QApplication.translate("MainWindow", "Show DBW sends", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_31), QtGui.QApplication.translate("MainWindow", "Server Connection", None, QtGui.QApplication.UnicodeUTF8))

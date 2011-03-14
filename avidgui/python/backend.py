@@ -20,7 +20,7 @@ class Backend():
 		try:
 			self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
 			self.sock.connect((host,port))
-			self.sock.settimeout(.2)
+			self.sock.settimeout(1)
 		except Exception, e:
 			self.sock.close()
 			msg = "%s" % e

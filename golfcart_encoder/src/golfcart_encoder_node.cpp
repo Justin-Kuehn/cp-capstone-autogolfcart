@@ -10,7 +10,7 @@
 using namespace ros;
 using std::string;
 
-static const int ARRAY_SIZE = 20;
+static const int ARRAY_SIZE = 10;
 
 int main(int argc, char **argv) {
     int last_tick = 0, delta_tick = 0, rolling_index = 0;
@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
 
     CompassReader compass(eParams.compass_port);
     // Set Up Compass
-    boost::thread compassThread(compass);  
+    boost::thread compassThread(boost::ref(compass));  
 
     ros::Publisher pb = 
         nh.advertise<golfcart_encoder::GolfcartEncoder>("encoder", 1);
